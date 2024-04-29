@@ -36,7 +36,9 @@ def FindOSMObjects():
         else:
             noComps.append(mesh)
 
-    print(len(buildingMeshes), "Objects found")
+    print(len(buildingMeshes), "objects found")
+    print(len(noComps), "without data assets")
+    print(len(withComps), "with data assets")
 
 
 def AddComps():
@@ -44,7 +46,10 @@ def AddComps():
     global withComps
 
     for mesh in noComps:
-        actor = u.EditorActorSubsystem.get_actor_reference(mesh)
+        meshPath = u.EditorActorSubsystem.get_path_name(mesh)
+
+        ## Try EditorLevelLibrary.get_instance_reference.
+        actor = u.EditorActorSubsystem.get_actor_reference(meshPath)
 
         ## Check actor validity, check comp validity, then add comps.
 
@@ -54,8 +59,6 @@ def AddComps():
             uComp = u.EditorLevelLibrary.add_actor_component(actor, uiComp)
             damComp = u.EditorLevelLibrary.add_actor_component(actor, damageComp)
             fluxComp = u.EditorLevelLibrary.add_actor_component(actor, fluxData)
-
-            clickComp = u.new_object
 
             if(clickComp and datComp and uComp and damComp and fluxComp):
                 u.EditorLevelLibrary.attach_actor_to_actor(actor, clickComp)
@@ -67,5 +70,10 @@ def AddComps():
         withComps.append(actor)
 
     noComps.clear()
+    
+    print(len(buildingMeshes), "objects found")
+    print(len(noComps), "without data assets")
+    print(len(withComps), "with data assets")
 
 FindOSMObjects()
+AddComps()
