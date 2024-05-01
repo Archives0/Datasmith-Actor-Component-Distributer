@@ -45,29 +45,18 @@ def AddComps():
     global noComps
     global withComps
 
+    soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
+
     for mesh in noComps:
-        meshPath = u.EditorActorSubsystem.get_path_name(mesh)
 
-        ## Try EditorLevelLibrary.get_instance_reference.
-        actor = u.EditorActorSubsystem.get_actor_reference(meshPath)
+        rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
 
-        ## Check actor validity, check comp validity, then add comps.
+        clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
+        dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
+        uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
+        damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
 
-        if(actor):
-            clickComp = u.EditorLevelLibrary.add_actor_component(actor, clickableComp)
-            datComp = u.EditorLevelLibrary.add_actor_component(actor, dataComp)
-            uComp = u.EditorLevelLibrary.add_actor_component(actor, uiComp)
-            damComp = u.EditorLevelLibrary.add_actor_component(actor, damageComp)
-            fluxComp = u.EditorLevelLibrary.add_actor_component(actor, fluxData)
-
-            if(clickComp and datComp and uComp and damComp and fluxComp):
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, clickComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, datComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, uComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, damComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, fluxComp)
-
-        withComps.append(actor)
+        withComps.append(mesh)
 
     noComps.clear()
     
