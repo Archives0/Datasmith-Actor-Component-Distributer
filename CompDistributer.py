@@ -49,27 +49,28 @@ def AddComps():
     counter = 1
     soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
 
-    with u.ScopedSlowTask(numTasks, "Adding actor components...") as slowTask:
-        slowTask.make_dialog(True)
+    with u.ScopedEditorTransaction("Added actor components") as trans:
+        with u.ScopedSlowTask(numTasks, "Adding actor components...") as slowTask:
+            slowTask.make_dialog(True)
 
-        for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
-            if slowTask.should_cancel():
-                print("Task canceled")
-                break
+            for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
+                if slowTask.should_cancel():
+                    print("Task canceled")
+                    break
 
-            slowTask.enter_progress_frame(1, "Adding actor components..." + str(counter) + " / " + str(numTasks))
+                slowTask.enter_progress_frame(1, "Adding actor components..." + str(counter) + " / " + str(numTasks))
 
-            rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+                rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
 
-            clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
-            dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
-            uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
-            damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+                clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
+                dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
+                uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
+                damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
 
-            withComps.append(mesh)
-            counter += 1
+                withComps.append(mesh)
+                counter += 1
 
-    noComps.clear()
+        noComps.clear()
     
     print(len(buildingMeshes), "objects found")
     print(len(noComps), "without data assets")
@@ -83,30 +84,28 @@ def RemoveComps():
     numTasks = len(withComps)
     counter = 1
 
-    with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
-        slowTask.make_dialog(True)
+    with u.ScopedEditorTransaction("Removed actor components") as trans:
+        with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
+            slowTask.make_dialog(True)
 
-        for mesh in withComps:
-            if slowTask.should_cancel():
-                print("Task canceled")
-                break
+            for mesh in withComps:
+                if slowTask.should_cancel():
+                    print("Task canceled")
+                    break
 
-            slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
+                slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
 
-            parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
-            rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
-            rootData.pop(1)                                                             ## Remove static mesh component from data list
-            soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
+                parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+                rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
+                rootData.pop(1)                                                             ## Remove static mesh component from data list
+                soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
 
-            noComps.append(mesh)
-            counter += 1
-        
-        withComps.clear()
+                noComps.append(mesh)
+                counter += 1
+            
+            withComps.clear()
         print(len(buildingMeshes), "objects found")
         print(len(noComps), "without data assets")
         print(len(withComps), "with data assets")
 
     withComps.clear()
-
-
-            

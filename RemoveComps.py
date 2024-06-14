@@ -48,25 +48,26 @@ def RemoveComps():
     numTasks = len(withComps)
     counter = 1
 
-    with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
-        slowTask.make_dialog(True)
+    with u.ScopedEditorTransaction("Removed actor components") as trans:
+        with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
+            slowTask.make_dialog(True)
 
-        for mesh in withComps:
-            if slowTask.should_cancel():
-                print("Task canceled")
-                break
+            for mesh in withComps:
+                if slowTask.should_cancel():
+                    print("Task canceled")
+                    break
 
-            slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
+                slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
 
-            parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
-            rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
-            rootData.pop(1)                                                             ## Remove static mesh component from data list
-            soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
+                parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+                rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
+                rootData.pop(1)                                                             ## Remove static mesh component from data list
+                soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
 
-            noComps.append(mesh)
-            counter += 1
-        
-        withComps.clear()
+                noComps.append(mesh)
+                counter += 1
+            
+            withComps.clear()
         print(len(buildingMeshes), "objects found")
         print(len(noComps), "without data assets")
         print(len(withComps), "with data assets")
