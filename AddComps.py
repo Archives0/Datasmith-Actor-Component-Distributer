@@ -11,7 +11,7 @@ clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Clickable
 dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Metadata")
 uiComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_3DUI")
 damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
-fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
+# fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
 
 def FindOSMObjects():
     global allActors
@@ -26,12 +26,12 @@ def FindOSMObjects():
 
     allActors = u.DatasmithContentLibrary.get_all_objects_and_values_for_key(metadataKey, u.SceneComponent)
 
-    for objects in allActors[0]:
+    for objects in allActors[0]:                                        ## All actors, without metadata value.
         owner = objects.get_owner()
-        buildingMeshes.append(owner.get_attached_actors()[0])
+        buildingMeshes.append(owner.get_attached_actors()[0])           ## Fill list with only meshes attached to actors.
 
     for mesh in buildingMeshes:
-        if(mesh.get_component_by_class(clickableComp)):
+        if(mesh.get_component_by_class(clickableComp)):                 ## If clickable component is present.
             withComps.append(mesh)
         else:
             noComps.append(mesh)
@@ -47,7 +47,7 @@ def AddComps():
 
     soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
 
-    for mesh in noComps:
+    for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
 
         rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
 

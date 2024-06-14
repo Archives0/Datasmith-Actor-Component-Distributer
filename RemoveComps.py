@@ -11,7 +11,7 @@ clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Clickable
 dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Metadata")
 uiComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_3DUI")
 damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
-fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
+# fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
 
 def FindOSMObjects():
     global allActors
@@ -40,6 +40,20 @@ def FindOSMObjects():
     print(len(noComps), "without data assets")
     print(len(withComps), "with data assets")
 
+# ## TODO Finish here
+
+# def RemoveSubObjs(soSub, mesh):
+#     subHandles = list()
+#     ## Accepts actor
+#     rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+#     subData = soSub.k2_gather_subobject_data_for_instance(mesh)
+
+#     subHandles.append(soSub.find_handle_for_object)
+
+#     ## Accepts actor handle and array of handles to be deleted
+#     soSub.k2_delete_subobjects_from_instance()
+
+
 def RemoveComps():
     global noComps
     global withComps
@@ -47,16 +61,17 @@ def RemoveComps():
     soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
 
     for mesh in withComps:
-        rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)
-        subData = list()
-        
-        for data in rootSub:
-            subData.append(data)
+        parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+        rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
+        rootData.pop(1)                                                             ## Remove static mesh component from data list
+        soSub.k2_delete_subbjects_from_instance(parentHandle, rootData)
 
-        soSub.delete_subobjects(subData)
         noComps.append(mesh)
     
     withComps.clear()
     print(len(buildingMeshes), "objects found")
     print(len(noComps), "without data assets")
     print(len(withComps), "with data assets")
+
+FindOSMObjects()
+RemoveComps()
