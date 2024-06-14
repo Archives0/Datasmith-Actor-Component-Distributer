@@ -7,11 +7,11 @@ buildingMeshes = list()
 
 metadataKey = "osm_id"
 
-clickableComp = "AC_Clickable"
-dataComp = "AC_Metadata"
-uiComp = "AC_3DUI"
-damageComp = "AC_DamageCalculator"
-fluxData = "BP_Flux_Data_Component"
+clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Clickable")
+dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Metadata")
+uiComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_3DUI")
+damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
+# fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
 
 def FindOSMObjects():
     global allActors
@@ -19,69 +19,92 @@ def FindOSMObjects():
     global withComps
     global buildingMeshes
 
+    allActors.clear()
+    noComps.clear()
+    withComps.clear()
     buildingMeshes.clear()
+
     allActors = u.DatasmithContentLibrary.get_all_objects_and_values_for_key(metadataKey, u.SceneComponent)
 
-    for sceneComps, values in allActors.items():
-        for component in sceneComps:
-            owner = component.get_owner()
-            buildingMeshes.append(u.EditorLevelLibrary.get_attached_actors(owner)[0])
+    for objects in allActors[0]:                                        ## All actors, without metadata value.
+        owner = objects.get_owner()
+        buildingMeshes.append(owner.get_attached_actors()[0])           ## Fill list with only meshes attached to actors.
 
     for mesh in buildingMeshes:
-        if(u.EditorLevelLibrary.actor_has_component(mesh, clickableComp)):
+        if(mesh.get_component_by_class(clickableComp)):                 ## If clickable component is present.
             withComps.append(mesh)
         else:
             noComps.append(mesh)
 
-    print(buildingMeshes.count(), "Objects found")
+    print(len(buildingMeshes), "objects found")
+    print(len(noComps), "without data assets")
+    print(len(withComps), "with data assets")
 
 
 def AddComps():
     global noComps
     global withComps
 
-    for mesh in noComps:
-        actor = u.EditorActorSubsystem.get_actor_reference(mesh)
+    numTasks = len(noComps)
+    counter = 1
+    soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
 
-        ## Check actor validity, check comp validity, then add comps.
+    with u.ScopedSlowTask(numTasks, "Adding actor components...") as slowTask:
+        slowTask.make_dialog(True)
 
-        if(actor):
-            clickComp = u.EditorLevelLibrary.add_actor_component(actor, clickableComp)
-            datComp = u.EditorLevelLibrary.add_actor_component(actor, dataComp)
-            uComp = u.EditorLevelLibrary.add_actor_component(actor, uiComp)
-            damComp = u.EditorLevelLibrary.add_actor_component(actor, damageComp)
-            fluxComp = u.EditorLevelLibrary.add_actor_component(actor, fluxData)
+        for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
+            if slowTask.should_cancel():
+                print("Task canceled")
+                break
 
-            if(clickComp and datComp and uComp and damComp and fluxComp):
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, clickComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, datComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, uComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, damComp)
-                u.EditorLevelLibrary.attach_actor_to_actor(actor, fluxComp)
+            slowTask.enter_progress_frame(1, "Adding actor components..." + str(counter) + " / " + str(numTasks))
 
-        withComps.append(actor)
+            rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+
+            clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
+            dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
+            uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
+            damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+
+            withComps.append(mesh)
+            counter += 1
 
     noComps.clear()
+    
+    print(len(buildingMeshes), "objects found")
+    print(len(noComps), "without data assets")
+    print(len(withComps), "with data assets")
 
 def RemoveComps():
     global noComps
     global withComps
 
-    for mesh in withComps:
-        actor = u.EditorActorSubsystem.get_actor_reference(mesh)
+    soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
+    numTasks = len(withComps)
+    counter = 1
 
-        if(actor):
-            clickComp = u.EditorLevelLibrary.find_actor_component_by_class(actor, clickableComp)
-            datComp = u.EditorLevelLibrary.find_actor_component_by_class(actor, dataComp)
-            uComp = u.EditorLevelLibrary.find_actor_component_by_class(actor, uiComp)
-            damComp = u.EditorLevelLibrary.find_actor_component_by_class(actor, damageComp)
-            fluxComp = u.EditorLevelLibrary.find_actor_component_by_class(actor, fluxData)
+    with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
+        slowTask.make_dialog(True)
 
-            u.EditorLevelLibrary.remove_actor_component(actor, clickComp)
-            u.EditorLevelLibrary.remove_actor_component(actor, datComp)
-            u.EditorLevelLibrary.remove_actor_component(actor, uComp)
-            u.EditorLevelLibrary.remove_actor_component(actor, damComp)
-            u.EditorLevelLibrary.remove_actor_component(actor, fluxComp)
+        for mesh in withComps:
+            if slowTask.should_cancel():
+                print("Task canceled")
+                break
+
+            slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
+
+            parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+            rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
+            rootData.pop(1)                                                             ## Remove static mesh component from data list
+            soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
+
+            noComps.append(mesh)
+            counter += 1
+        
+        withComps.clear()
+        print(len(buildingMeshes), "objects found")
+        print(len(noComps), "without data assets")
+        print(len(withComps), "with data assets")
 
     withComps.clear()
 

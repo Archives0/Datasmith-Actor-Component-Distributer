@@ -45,18 +45,29 @@ def AddComps():
     global noComps
     global withComps
 
+    numTasks = len(noComps)
+    counter = 1
     soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
 
-    for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
+    with u.ScopedSlowTask(numTasks, "Adding actor components...") as slowTask:
+        slowTask.make_dialog(True)
 
-        rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+        for mesh in noComps:                                                ## Add components if mesh does not have base clickable component
+            if slowTask.should_cancel():
+                print("Task canceled")
+                break
 
-        clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
-        dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
-        uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
-        damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+            slowTask.enter_progress_frame(1, "Adding actor components..." + str(counter) + " / " + str(numTasks))
 
-        withComps.append(mesh)
+            rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+
+            clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
+            dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
+            uiSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=uiComp))
+            damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+
+            withComps.append(mesh)
+            counter += 1
 
     noComps.clear()
     

@@ -40,38 +40,36 @@ def FindOSMObjects():
     print(len(noComps), "without data assets")
     print(len(withComps), "with data assets")
 
-# ## TODO Finish here
-
-# def RemoveSubObjs(soSub, mesh):
-#     subHandles = list()
-#     ## Accepts actor
-#     rootSub = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
-#     subData = soSub.k2_gather_subobject_data_for_instance(mesh)
-
-#     subHandles.append(soSub.find_handle_for_object)
-
-#     ## Accepts actor handle and array of handles to be deleted
-#     soSub.k2_delete_subobjects_from_instance()
-
-
 def RemoveComps():
     global noComps
     global withComps
 
     soSub = u.get_engine_subsystem(u.SubobjectDataSubsystem)
+    numTasks = len(withComps)
+    counter = 1
 
-    for mesh in withComps:
-        parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
-        rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
-        rootData.pop(1)                                                             ## Remove static mesh component from data list
-        soSub.k2_delete_subbjects_from_instance(parentHandle, rootData)
+    with u.ScopedSlowTask(numTasks, "Removing actor components...") as slowTask:
+        slowTask.make_dialog(True)
 
-        noComps.append(mesh)
-    
-    withComps.clear()
-    print(len(buildingMeshes), "objects found")
-    print(len(noComps), "without data assets")
-    print(len(withComps), "with data assets")
+        for mesh in withComps:
+            if slowTask.should_cancel():
+                print("Task canceled")
+                break
+
+            slowTask.enter_progress_frame(1, "Removing actor components..." + str(counter) + " / " + str(numTasks))
+
+            parentHandle = soSub.k2_gather_subobject_data_for_instance(mesh)[0]
+            rootData = soSub.k2_gather_subobject_data_for_instance(mesh)                ## Returns array of handles for subobjs on mesh obj
+            rootData.pop(1)                                                             ## Remove static mesh component from data list
+            soSub.k2_delete_subobjects_from_instance(parentHandle, rootData)
+
+            noComps.append(mesh)
+            counter += 1
+        
+        withComps.clear()
+        print(len(buildingMeshes), "objects found")
+        print(len(noComps), "without data assets")
+        print(len(withComps), "with data assets")
 
 FindOSMObjects()
 RemoveComps()
