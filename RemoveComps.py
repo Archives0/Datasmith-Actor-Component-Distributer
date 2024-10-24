@@ -11,7 +11,7 @@ clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Clickable
 dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_Metadata")
 uiComp = u.EditorAssetLibrary.load_blueprint_class("/Game/UI/AC_3DUI")
 damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
-# fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
+fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback/BP_FluxDataComponent")
 
 def FindOSMObjects():
     global allActors
