@@ -6,11 +6,18 @@ withComps = list()
 buildingMeshes = list()
 
 metadataKey = "osm_id"
+tagName = "Building"
 
-clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/UI/AC_Interactable")
-dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/UI/AC_Metadata")
-damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
+clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/Components/AC_Interactable")
+dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/Components/AC_Metadata")
+# damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
 # fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
+
+def AddTag(actor):
+    if(u.Name(tagName) not in actor.tags):
+        aTags = actor.tags
+        aTags.append(u.Name(tagName))
+        actor.tags = aTags
 
 def FindOSMObjects():
     global allActors
@@ -30,6 +37,8 @@ def FindOSMObjects():
         buildingMeshes.append(owner.get_attached_actors()[0])           ## Fill list with only meshes attached to actors.
 
     for mesh in buildingMeshes:
+        AddTag(mesh)
+
         if(mesh.get_component_by_class(clickableComp)):                 ## If clickable component is present.
             withComps.append(mesh)
         else:
@@ -63,7 +72,7 @@ def AddComps():
 
                 clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
                 dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
-                damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+                # damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
 
                 withComps.append(mesh)
                 counter += 1
