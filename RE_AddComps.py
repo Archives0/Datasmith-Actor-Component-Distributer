@@ -10,8 +10,8 @@ tagName = "Building"
 
 clickableComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/Components/AC_Interactable")
 dataComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/Components/AC_Metadata")
-# damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/AC_DamageCalculator")
-# fluxData = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback")
+damageComp = u.EditorAssetLibrary.load_blueprint_class("/Game/Blueprints/Components/AC_Damage")
+fluxComp = u.EditorAssetLibrary.load_blueprint_class("/Game/FluidFlux/Environment/Readback/BP_FluxDataComponent")
 
 def AddTag(actor):
     if(u.Name(tagName) not in actor.tags):
@@ -72,7 +72,8 @@ def AddComps():
 
                 clickSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=clickableComp))
                 dataSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=dataComp))
-                # damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+                damSub = soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=damageComp))
+                soSub.add_new_subobject(u.AddNewSubobjectParams(parent_handle=rootSub, new_class=fluxComp))
 
                 withComps.append(mesh)
                 counter += 1
